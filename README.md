@@ -19,5 +19,5 @@ An intelligent WhatsApp chatbot powered by Python and AI, seamlessly integrated 
 
 1. **Clone the repository**:
    ```bash
-   git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
+   git clone [https://github.com/vishalyadav351/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
    cd your-repo-name
