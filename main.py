@@ -19,24 +19,24 @@ async def receive_message(Body: str = Form(...), From: str = Form(...)):
         reply_msg = resp.message()
 
         # ==================== EXAMPLE 1: Product Enquiry Flow ====================
-        if any(word in msg for word in ["hi", "hello", "menu", "start", "namaste", "chashma chahiye"]):
-            if "chashma chahiye" in msg:
-                reply_msg.body(
-                    "Namaste 👋 Welcome to Vision Optical!\n"
-                    "Bilkul, main aapko suitable glasses choose karne mein help karta hoon.\n"
-                    "Aapka budget approximately kitna hai?"
-                )
-            else:
-                reply_msg.body(
-                    "🙏 Namaste 👋 Welcome to Vision Optical!\n\n"
-                    "Aap kya karna chahte hain? Inme se batayein:\n"
-                    "• Chashma kharidna hai (Budget batayein)\n"
-                    "• Eye test karwana hai\n"
-                    "• Mera chashma ready hua? (Order status)\n"
-                    "• Mujhe ye frame order karna hai"
-                )
+        if "chashma chahiye" in msg:
+            reply_msg.body(
+                "Namaste 👋 Welcome to Vision Optical!\n"
+                "Bilkul, main aapko suitable glasses choose karne mein help karta hoon.\n"
+                "Aapka budget approximately kitna hai?"
+            )
 
-        elif "3000" in msg or "3000 tak" in msg or "budget" in msg:
+        elif any(word in msg for word in ["hi", "hello", "menu", "start", "namaste"]):
+            reply_msg.body(
+                "🙏 Namaste 👋 Welcome to Vision Optical!\n\n"
+                "Aap kya karna chahte hain? Inme se batayein:\n"
+                "• Chashma kharidna hai (Budget batayein)\n"
+                "• Eye test karwana hai\n"
+                "• Mera chashma ready hua? (Order status)\n"
+                "• Mujhe ye frame order karna hai"
+            )
+
+        elif "3000" in msg or "budget" in msg:
             reply_msg.body(
                 "Great 👍 ₹3,000 ke andar main aapko achhe options dikha sakta hoon.\n"
                 "Aapko kis type ka chashma chahiye?\n\n"
@@ -76,23 +76,17 @@ async def receive_message(Body: str = Form(...), From: str = Form(...)):
                 "Perfect 👍 Appointment confirm karne ke liye apna naam bata dijiye."
             )
 
-        elif msg in ["rohit", "amit", "rahul", "vishal"] or len(msg.split()) == 1 and not any(k in msg for k in ["yes", "no", "order", "delivery"]):
-            # Agar user ne apna naam bataya hai booking ke liye
-            name = Body.strip().capitalize()
+        # Final Appointment Confirmation
+        elif "confirm appointment" in msg or msg == "confirm":
             reply_msg.body(
-                f"Thank you, {name}.\n\n"
-                f"👁️ Eye Test Appointment\n"
-                f"📅 2 September\n"
-                f"🕠 5:30 PM\n"
-                f"👤 {name}\n\n"
-                "Kya main appointment confirm kar doon?"
+                "✅ Appointment confirmed!\n\n"
+                "We look forward to seeing you at Vision Optical. 👓"
             )
 
         # ==================== EXAMPLE 3: Order Status Flow ====================
         elif "ready" in msg or "status" in msg or "chashma ready hua" in msg:
             reply_msg.body(
                 "Bilkul, main aapka order status check karta hoon. 🔎\n\n"
-                "*(The AI checks MySQL)*\n\n"
                 "Good news! 🎉\n"
                 "Aapka order ready for pickup hai.\n\n"
                 "📦 Order: #OPT10245\n"
@@ -116,8 +110,7 @@ async def receive_message(Body: str = Form(...), From: str = Form(...)):
                 "Great. Delivery ke liye aapka address confirm kar dijiye."
             )
 
-        elif "address" in msg or "street" in msg or "sector" in msg or "allahabad" in msg or "delhi" in msg or "kanpur" in msg:
-            # Address milne ke baad order summary dikhayega
+        elif any(addr in msg for addr in ["address", "street", "sector", "allahabad", "delhi", "kanpur", "house", "flat"]):
             reply_msg.body(
                 "Order summary:\n\n"
                 "👓 Titan Frame + Blue Cut Lens — ₹2,499\n"
@@ -126,19 +119,30 @@ async def receive_message(Body: str = Form(...), From: str = Form(...)):
                 "Kya aap payment ke liye proceed karna chahenge?"
             )
 
-        # Final Confirmation / Payment Steps
-        elif msg in ["yes", "haan", "ok", "proceed"]:
+        # Payment Link for Online Purchase
+        elif "pay" in msg or "payment" in msg or "proceed" in msg or msg == "yes":
             reply_msg.body(
-                "✅ Appointment confirmed!\n"
-                "We look forward to seeing you at Vision Optical. 👓"
-                # Alternative agar payment link bhejna ho to niche wala uncomment kar sakte ho:
-                # "Perfect. 💳 Aapka secure payment link:\n\nPay ₹2,599\n\nPayment complete hone ke baad aapka order automatically confirm ho jayega."
+                "Perfect. 💳 Aapka secure payment link:\n\n"
+                "Pay ₹2,599\n\n"
+                "Payment complete hone ke baad aapka order automatically confirm ho jayega."
+            )
+
+        # Name Capture for Booking (Fallback for single-word names if typing after slot)
+        elif len(msg.split()) == 1 and not any(w in msg for w in ["hi", "hello", "menu", "status", "delivery", "frame", "yes"]):
+            name = Body.strip().capitalize()
+            reply_msg.body(
+                f"Thank you, {name}.\n\n"
+                f"👁️ Eye Test Appointment\n"
+                f"📅 2 September\n"
+                f"🕠 5:30 PM\n"
+                f"👤 {name}\n\n"
+                "Appointment confirm karne ke liye **'Confirm'** type karein."
             )
 
         # Fallback / Default response
         else:
             reply_msg.body(
-                f"🙏 Maaf kijiye, main samajh nahi paya. Vision Optical ke menu ke liye **'Hi'** ya **'Menu'** type karke bhejiye."
+                "🙏 Maaf kijiye, main samajh nahi paya. Vision Optical ke menu ke liye **'Menu'** type karke bhejiye."
             )
 
         return Response(content=str(resp), media_type="application/xml")
